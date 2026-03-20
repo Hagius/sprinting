@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPRINT_BERLIN</title>
+  <meta name="description" content="Weekly sprint sessions at Jahn Sportpark, Berlin. Saturdays at 16:00.">
+  <meta property="og:title" content="SPRINT_BERLIN">
+  <meta property="og:description" content="Weekly sprint sessions at Jahn Sportpark, Berlin. Saturdays at 16:00.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0a;
+      color: #e0e0e0;
+      font-family: "SF Mono", "Fira Code", "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
+      font-size: clamp(13px, 1.6vw, 16px);
+      line-height: 1.8;
+      padding: clamp(24px, 6vw, 80px) clamp(20px, 5vw, 48px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      flex: 1;
+    }
+
+    main > * {
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    main > .visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    canvas {
+      display: block;
+      margin-bottom: 64px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      width: 100%;
+      height: auto;
+    }
+
+    .title {
+      font-size: clamp(18px, 3vw, 28px);
+      color: #ff6b35;
+      letter-spacing: 0.15em;
+      margin-bottom: 4px;
+    }
+
+    .tagline {
+      color: #666;
+      margin-bottom: 48px;
+    }
+
+    .info {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 24px;
+      margin-bottom: 48px;
+      color: #666;
+    }
+
+    .info .value {
+      color: #e0e0e0;
+    }
+
+    .links {
+      margin-bottom: 12px;
+    }
+
+    .links a {
+      display: block;
+      color: #ff6b35;
+      text-decoration: none;
+      margin-bottom: 6px;
+      transition: color 0.15s;
+    }
+
+    .links a:hover {
+      color: #e0e0e0;
+    }
+
+    .links a::before { content: "["; color: #333; }
+    .links a::after  { content: "]"; color: #333; }
+
+    .cta {
+      display: inline-block;
+      margin-bottom: 48px;
+      padding: 10px 24px;
+      border: 1px solid #ff6b35;
+      color: #ff6b35;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .cta:hover {
+      background: #ff6b35;
+      color: #0a0a0a;
+    }
+
+    .cursor {
+      color: #666;
+      white-space: pre;
+    }
+
+    .cursor .caret {
+      color: #ff6b35;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    footer {
+      max-width: 720px;
+      width: 100%;
+      margin: 80px auto 0;
+      padding-top: 24px;
+      border-top: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    footer a {
+      color: #666;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    footer a:hover {
+      color: #e0e0e0;
+    }
+
+    footer .legal {
+      display: flex;
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <canvas id="runner" width="720" height="200"></canvas>
+
+    <div class="title">SPRINT_BERLIN</div>
+    <div class="tagline">// weekly sprint sessions in berlin</div>
+
+    <div class="info" id="info">
+      <span>location</span><span class="value">Jahn Sportpark, Berlin</span>
+      <span>time</span><span class="value">Saturdays, 16:00</span>
+      <span>next</span><span class="value" id="next-date"></span>
+    </div>
+
+    <div class="links">
+      <a href="how-it-works.pdf">how it works</a>
+    </div>
+
+    <a class="cta" href="https://chat.whatsapp.com/PLACEHOLDER" target="_blank" rel="noopener">join — whatsapp</a>
+
+    <div class="cursor"><span class="caret">_</span></div>
+  </main>
+
+  <footer>
+    <a href="https://instagram.com/sprint_berlin" target="_blank" rel="noopener">@instagram</a>
+    <div class="legal">
+      <a href="#">impressum</a>
+      <a href="#">datenschutz</a>
+    </div>
+  </footer>
+
+  <script>
+    // --- Next Saturday calculation ---
+    function getNextSaturday() {
+      const now = new Date();
+      const day = now.getDay();
+      const diff = (6 - day + 7) % 7 || 7;
+      const next = new Date(now);
+      next.setDate(now.getDate() + diff);
+      return next;
+    }
+
+    function formatDate(d) {
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      return months[d.getMonth()] + ' ' + d.getDate() + ', 16:00';
+    }
+
+    const nextSat = getNextSaturday();
+    document.getElementById('next-date').textContent = formatDate(nextSat);
+
+    // --- Favicon from sprite ---
+    (function generateFavicon() {
+      const fc = document.createElement('canvas');
+      fc.width = 16; fc.height = 16;
+      const fctx = fc.getContext('2d');
+      const sprite = [
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0],
+        [0,0,0,0,0,1,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,1,0,0,1,1,1,0,0,0,0,0],
+        [0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0],
+        [0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0],
+        [0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      ];
+      fctx.fillStyle = '#ff6b35';
+      for (let y = 0; y < 16; y++)
+        for (let x = 0; x < 16; x++)
+          if (sprite[y] && sprite[y][x]) fctx.fillRect(x, y, 1, 1);
+      const link = document.createElement('link');
+      link.rel = 'icon';
+      link.href = fc.toDataURL('image/png');
+      document.head.appendChild(link);
+    })();
+
+    // --- Fade-in on load ---
+    const elements = document.querySelectorAll('main > *');
+    elements.forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), 150 + i * 200);
+    });
+
+    // --- Runner animation ---
+    const canvas = document.getElementById('runner');
+    const ctx = canvas.getContext('2d');
+    const P = 5;
+    const FPS = 4;
+    const COLOR = '#ff6b35';
+    const TRACK_COLOR = '#ff6b3540';
+    const SPRITE_W = 16 * P;
+    const SPRITE_H = 16 * P;
+    const LANE_H = Math.floor(canvas.height / 3);
+
+    const runners = [
+      { x: 0, speed: 3.5, frameOffset: 0 },
+      { x: canvas.width * 0.6, speed: 2.5, frameOffset: 3 },
+      { x: canvas.width * 0.2, speed: 3, frameOffset: 6 },
+    ];
+
+    const frames = [
+      [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0],
+        [0,0,0,0,0,1,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,1,0,0,1,1,1,0,0,0,0,0],
+        [0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0],
+        [0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0],
+        [0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      ],
+      [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,1,0,0,0,0,0],
+        [0,0,0,0,0,1,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,1,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0],
+        [0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      ],
+      [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      ],
+      [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      ],
+      [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      ],
+      [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,1,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,1,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0],
+        [0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      ],
+      [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0],
+        [0,0,0,0,0,1,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,1,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0],
+        [0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0],
+        [0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      ],
+      [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0],
+        [0,0,0,0,0,1,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,1,0,0,1,1,1,0,0,0,0,0],
+        [0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0],
+        [0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0],
+        [0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      ],
+    ];
+
+    let globalFrame = 0;
+    let lastTime = 0;
+
+    function draw(time) {
+      if (time - lastTime > 1000 / FPS) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        runners.forEach((runner, i) => {
+          const laneY = i * LANE_H;
+          const trackY = laneY + LANE_H - P;
+
+          // Draw track line
+          ctx.fillStyle = TRACK_COLOR;
+          ctx.fillRect(0, trackY, canvas.width, 1);
+
+          // Draw sprite
+          const frame = frames[(globalFrame + runner.frameOffset) % frames.length];
+          ctx.fillStyle = COLOR;
+          for (let y = 0; y < frame.length; y++) {
+            for (let x = 0; x < frame[y].length; x++) {
+              if (frame[y][x]) {
+                ctx.fillRect(runner.x + x * P, laneY + y * P - 2 * P, P, P);
+              }
+            }
+          }
+
+          runner.x += runner.speed;
+          if (runner.x > canvas.width) {
+            runner.x = -SPRITE_W;
+          }
+        });
+
+        globalFrame++;
+        lastTime = time;
+      }
+      requestAnimationFrame(draw);
+    }
+
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>
