@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPRINT_BERLIN</title>
+  <meta name="description" content="Weekly sprint sessions at Jahn Sportpark, Berlin. Saturdays at 16:00.">
+  <meta property="og:title" content="SPRINT_BERLIN">
+  <meta property="og:description" content="Weekly sprint sessions at Jahn Sportpark, Berlin. Saturdays at 16:00.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0a;
+      color: #e0e0e0;
+      font-family: "SF Mono", "Fira Code", "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
+      font-size: clamp(13px, 1.6vw, 16px);
+      line-height: 1.8;
+      padding: clamp(24px, 6vw, 80px) clamp(20px, 5vw, 48px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      flex: 1;
+    }
+
+    main > * {
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    main > .visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    canvas {
+      display: block;
+      margin-bottom: 64px;
+      width: 100%;
+      height: auto;
+    }
+
+    .title {
+      font-size: clamp(18px, 3vw, 28px);
+      color: #ff6b35;
+      letter-spacing: 0.15em;
+      margin-bottom: 4px;
+    }
+
+    .tagline {
+      color: #666;
+      margin-bottom: 48px;
+    }
+
+    .info {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 24px;
+      margin-bottom: 48px;
+      color: #666;
+    }
+
+    .info .value {
+      color: #e0e0e0;
+    }
+
+    .links {
+      margin-bottom: 12px;
+    }
+
+    .links a {
+      display: block;
+      color: #ff6b35;
+      text-decoration: none;
+      margin-bottom: 6px;
+      transition: color 0.15s;
+    }
+
+    .links a:hover {
+      color: #e0e0e0;
+    }
+
+    .links a::before { content: "["; color: #333; }
+    .links a::after  { content: "]"; color: #333; }
+
+    .cta {
+      display: inline-block;
+      margin-bottom: 48px;
+      padding: 10px 24px;
+      border: 1px solid #ff6b35;
+      color: #ff6b35;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .cta:hover {
+      background: #ff6b35;
+      color: #0a0a0a;
+    }
+
+    .cursor {
+      color: #666;
+      white-space: pre;
+    }
+
+    .cursor .caret {
+      color: #ff6b35;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    footer {
+      max-width: 720px;
+      width: 100%;
+      margin: 80px auto 0;
+      padding-top: 24px;
+      border-top: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    footer a {
+      color: #666;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    footer a:hover {
+      color: #e0e0e0;
+    }
+
+    footer .legal {
+      display: flex;
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <canvas id="runner" width="720" height="200"></canvas>
+
+    <div class="title">SPRINT_BERLIN</div>
+    <div class="tagline">// weekly sprint sessions in berlin</div>
+
+    <div class="info" id="info">
+      <span>location</span><span class="value">Jahn Sportpark, Berlin</span>
+      <span>time</span><span class="value">Saturdays, 16:00</span>
+      <span>next</span><span class="value" id="next-date"></span>
+    </div>
+
+    <div class="links">
+      <a href="how-it-works.pdf">how it works</a>
+    </div>
+
+    <a class="cta" href="https://chat.whatsapp.com/PLACEHOLDER" target="_blank" rel="noopener">join — whatsapp</a>
+
+    <div class="cursor"><span class="caret">_</span></div>
+  </main>
+
+  <footer>
+    <a href="https://instagram.com/sprint_berlin" target="_blank" rel="noopener">@instagram</a>
+    <div class="legal">
+      <a href="#">impressum</a>
+      <a href="#">datenschutz</a>
+    </div>
+  </footer>
+
+  <script>
+    // --- Next Saturday calculation ---
+    function getNextSaturday() {
+      const now = new Date();
+      const day = now.getDay();
+      const diff = (6 - day + 7) % 7 || 7;
+      const next = new Date(now);
+      next.setDate(now.getDate() + diff);
+      return next;
+    }
+
+    function formatDate(d) {
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      return months[d.getMonth()] + ' ' + d.getDate() + ', 16:00';
+    }
+
+    const nextSat = getNextSaturday();
+    document.getElementById('next-date').textContent = formatDate(nextSat);
+
+    // --- Favicon from stick figure ---
+    (function generateFavicon() {
+      const fc = document.createElement('canvas');
+      fc.width = 16; fc.height = 16;
+      const fctx = fc.getContext('2d');
+      fctx.strokeStyle = '#ff6b35';
+      fctx.fillStyle = '#ff6b35';
+      fctx.lineWidth = 1.5;
+      fctx.lineCap = 'round';
+      // Head
+      fctx.beginPath();
+      fctx.arc(9, 2.5, 1.8, 0, Math.PI * 2);
+      fctx.fill();
+      // Torso (leaning forward)
+      fctx.beginPath();
+      fctx.moveTo(9, 4);
+      fctx.lineTo(7, 8);
+      fctx.stroke();
+      // Back arm
+      fctx.beginPath();
+      fctx.moveTo(8.5, 5);
+      fctx.lineTo(5, 4);
+      fctx.stroke();
+      // Front arm
+      fctx.beginPath();
+      fctx.moveTo(8.5, 5);
+      fctx.lineTo(11, 6);
+      fctx.stroke();
+      // Back leg (extended)
+      fctx.beginPath();
+      fctx.moveTo(7, 8);
+      fctx.lineTo(3, 11);
+      fctx.lineTo(1, 14);
+      fctx.stroke();
+      // Front leg (knee drive)
+      fctx.beginPath();
+      fctx.moveTo(7, 8);
+      fctx.lineTo(10, 10);
+      fctx.lineTo(10, 13);
+      fctx.stroke();
+      const link = document.createElement('link');
+      link.rel = 'icon';
+      link.href = fc.toDataURL('image/png');
+      document.head.appendChild(link);
+    })();
+
+    // --- Fade-in on load ---
+    const elements = document.querySelectorAll('main > *');
+    elements.forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), 150 + i * 200);
+    });
+
+    // ========================================================
+    // FULL RACE SEQUENCE — Stick Figure Runner Animation
+    // Biomechanics-accurate: walk → blocks → drive → sprint → decelerate
+    // ========================================================
+    const canvas = document.getElementById('runner');
+    const ctx = canvas.getContext('2d');
+    const FPS = 5.5;
+    const COLOR = '#ff6b35';
+    const TRACK_COLOR = '#ff6b3540';
+    const LANE_H = Math.floor(canvas.height / 3);
+    const S = 3.0;
+
+    // Anatomical proportions (units × S = pixels)
+    const TORSO = 5, HEAD_R = 1.2, HEAD_OFF = 2.5;
+    const THIGH = 4, SHANK = 4, UARM = 3, FARM = 2.5;
+
+    // Track positions
+    const START_X = canvas.width * 0.12;
+    const FINISH_X = canvas.width * 0.88;
+
+    // ---- computePose: angles → joint positions ----
+    // trunkLean is now a parameter (radians from vertical)
+    function computePose(angles, tl) {
+      const [hA, kA, hB, kB, sA, eA, sB, eB] = angles;
+      const neck = [Math.sin(tl) * TORSO, -Math.cos(tl) * TORSO];
+      const head = [neck[0] + Math.sin(tl) * HEAD_OFF, neck[1] - Math.cos(tl) * HEAD_OFF];
+      const knA = [Math.sin(hA) * THIGH, Math.cos(hA) * THIGH];
+      const fA = [knA[0] + Math.sin(hA - kA) * SHANK, knA[1] + Math.cos(hA - kA) * SHANK];
+      const knB = [Math.sin(hB) * THIGH, Math.cos(hB) * THIGH];
+      const fB = [knB[0] + Math.sin(hB - kB) * SHANK, knB[1] + Math.cos(hB - kB) * SHANK];
+      const elA = [neck[0] + Math.sin(sA) * UARM, neck[1] + Math.cos(sA) * UARM];
+      const haA = [elA[0] + Math.sin(sA + eA) * FARM, elA[1] + Math.cos(sA + eA) * FARM];
+      const elB = [neck[0] + Math.sin(sB) * UARM, neck[1] + Math.cos(sB) * UARM];
+      const haB = [elB[0] + Math.sin(sB + eB) * FARM, elB[1] + Math.cos(sB + eB) * FARM];
+      return { head, neck, knA, fA, knB, fB, elA, haA, elB, haB };
+    }
+
+    // ---- Interpolate between two angle arrays ----
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function lerpAngles(a, b, t) { return a.map((v, i) => lerp(v, b[i], t)); }
+
+    // ---- Build full stride from half-stride (mirror legs+arms) ----
+    function fullStride(half) {
+      const full = [...half];
+      for (const f of half) full.push([f[2],f[3],f[0],f[1], f[6],f[7],f[4],f[5]]);
+      return full;
+    }
+
+    // ============================================================
+    // PHASE POSE DATA — based on sprint biomechanics research
+    // [hipA, kneeA, hipB, kneeB, shA, elA, shB, elB]
+    // ============================================================
+
+    // WALK — relaxed gait, ~3° trunk lean
+    // Hip ROM ±20°, knee 0-65°, gentle arm swing
+    const WALK_TL = 0.05;
+    const walkFrames = fullStride([
+      [-0.25, 0.05,  0.30, 0.15,   0.20, 0.30, -0.15, 0.25],
+      [-0.10, 0.20,  0.15, 0.25,   0.10, 0.25, -0.05, 0.25],
+      [ 0.10, 0.35,  0.00, 0.05,  -0.05, 0.25,  0.05, 0.25],
+      [ 0.25, 0.15, -0.20, 0.05,  -0.15, 0.30,  0.15, 0.30],
+    ]);
+
+    // CROUCH — transition from standing to "on your marks"
+    // Runner bends down, legs fold into blocks position, trunk goes nearly horizontal
+    const crouchData = [
+      { tl: 0.30, a: [ 0.10, 0.30, -0.05, 0.30,  0.30, 0.20,  0.30, 0.20] },
+      { tl: 0.60, a: [ 0.15, 0.70, -0.15, 0.60,  0.30, 0.15,  0.30, 0.15] },
+      { tl: 0.95, a: [ 0.18, 1.05, -0.25, 0.80,  0.30, 0.12,  0.30, 0.12] },
+      { tl: 1.20, a: [ 0.20, 1.30, -0.35, 0.95,  0.30, 0.10,  0.30, 0.10] },
+    ];
+
+    // SET — hips raised, weight forward on hands, feet in blocks
+    // Trunk nearly horizontal (1.40 rad ≈ 80°), head below hip level
+    // Front block: hip 0.20 (thigh slightly forward), knee 1.40 (deeply bent, foot tucked far back)
+    // Rear block: hip -0.40 (thigh behind), knee 1.00 (moderately bent)
+    // Arms reaching down toward ground from near-horizontal trunk
+    const SET_TL = 1.40;
+    const setAngles = [0.20, 1.40, -0.40, 1.00, 0.30, 0.10, 0.30, 0.10];
+
+    // DRIVE — block clearance + first strides
+    // Trunk 48°→35°, massive hip extension, short powerful steps
+    const driveHalf = [
+      [-0.55, 0.15,  1.05, 1.50,   0.80, 1.50, -0.40, 0.45],
+      [-0.35, 0.40,  0.80, 1.20,   0.60, 1.30, -0.25, 0.45],
+      [-0.05, 1.20,  0.40, 0.60,   0.30, 1.10, -0.05, 0.50],
+      [ 0.20, 1.60,  0.10, 0.20,   0.00, 0.90,  0.10, 0.70],
+      [ 0.60, 1.40, -0.20, 0.10,  -0.25, 0.45,  0.50, 1.30],
+      [ 0.90, 1.50, -0.45, 0.15,  -0.40, 0.45,  0.70, 1.50],
+    ];
+    const driveFrames = fullStride(driveHalf);
+    const DRIVE_TL_START = 0.90, DRIVE_TL_END = 0.55;
+
+    // ACCEL — transition from drive to upright sprinting
+    // Trunk 35°→20°, knee drive getting higher, steps longer
+    const accelHalf = [
+      [-0.65, 0.15,  1.20, 1.65,   0.90, 1.65, -0.45, 0.48],
+      [-0.40, 0.45,  0.95, 1.35,   0.70, 1.45, -0.30, 0.48],
+      [-0.08, 1.35,  0.50, 0.70,   0.35, 1.20, -0.08, 0.55],
+      [ 0.25, 1.80,  0.10, 0.20,   0.00, 0.95,  0.10, 0.75],
+      [ 0.75, 1.55, -0.30, 0.15,  -0.30, 0.48,  0.60, 1.45],
+      [ 1.10, 1.65, -0.55, 0.15,  -0.45, 0.48,  0.80, 1.65],
+    ];
+    const accelFrames = fullStride(accelHalf);
+    const ACCEL_TL_START = 0.55, ACCEL_TL_END = 0.32;
+
+    // MAX VELOCITY — full speed, ~17° trunk lean
+    // Hip flexion 80°, extension -40°, high knee drive
+    const maxVelHalf = [
+      [-0.75, 0.15,  1.40, 1.80,   1.00, 1.80, -0.50, 0.50],
+      [-0.50, 0.50,  1.10, 1.50,   0.80, 1.60, -0.35, 0.50],
+      [-0.10, 1.50,  0.55, 0.70,   0.40, 1.30, -0.10, 0.60],
+      [ 0.30, 2.00,  0.10, 0.20,   0.00, 1.00,  0.10, 0.80],
+      [ 0.90, 1.70, -0.35, 0.15,  -0.35, 0.50,  0.70, 1.60],
+      [ 1.25, 1.80, -0.60, 0.15,  -0.50, 0.50,  0.90, 1.80],
+    ];
+    const maxVelFrames = fullStride(maxVelHalf);
+    const MAX_VEL_TL = 0.30;
+
+    // DECELERATE — slowing down, trunk rising to upright
+    // Reduced ROM, relaxed arms, shorter steps
+    const decelHalf = [
+      [-0.40, 0.10,  0.80, 1.20,   0.50, 1.20, -0.30, 0.40],
+      [-0.25, 0.30,  0.60, 1.00,   0.35, 1.00, -0.18, 0.40],
+      [-0.05, 0.90,  0.30, 0.50,   0.15, 0.80, -0.05, 0.45],
+      [ 0.15, 1.30,  0.05, 0.15,   0.00, 0.70,  0.05, 0.55],
+      [ 0.45, 1.10, -0.15, 0.10,  -0.15, 0.40,  0.30, 1.00],
+      [ 0.70, 1.20, -0.30, 0.10,  -0.30, 0.40,  0.45, 1.20],
+    ];
+    const decelFrames = fullStride(decelHalf);
+    const DECEL_TL_START = 0.30, DECEL_TL_END = 0.08;
+
+    // ============================================================
+    // FIXED HIP HEIGHT PER PHASE — prevents torso bobbing
+    // Precompute the max ground contact Y across all frames in each
+    // cyclic phase. Using a fixed height means feet lift off the ground
+    // during flight phases instead of the hip dropping down.
+    // ============================================================
+    function getMaxGroundY(frames) {
+      let maxY = 0;
+      for (const angles of frames) {
+        const p = computePose(angles, 0); // tl doesn't affect leg positions
+        const gy = Math.max(p.fA[1], p.fB[1], p.knA[1], p.knB[1]);
+        if (gy > maxY) maxY = gy;
+      }
+      return maxY;
+    }
+
+    const FIXED_GROUND_Y = {
+      WALK:  getMaxGroundY(walkFrames),
+      DRIVE: getMaxGroundY(driveFrames),
+      ACCEL: getMaxGroundY(accelFrames),
+      MAX:   getMaxGroundY(maxVelFrames),
+      DECEL: getMaxGroundY(decelFrames),
+    };
+
+    // ============================================================
+    // PHASE DEFINITIONS
+    // ============================================================
+    const PHASES = {
+      WALK:   { frames: walkFrames,   duration: Infinity },
+      CROUCH: { frames: null,         duration: crouchData.length },
+      SET:    { frames: null,         duration: Infinity }, // waits for sync
+      DRIVE:  { frames: driveFrames,  duration: 12 },
+      ACCEL:  { frames: accelFrames,  duration: 12 },
+      MAX:    { frames: maxVelFrames, duration: 30 },
+      DECEL:  { frames: decelFrames,  duration: 16 },
+    };
+
+    // ============================================================
+    // RUNNER STATE MACHINES
+    // ============================================================
+    const BASE_MAX_SPEED = 7.0;
+
+    function randomSpeedFactor() {
+      return 0.7 + Math.random() * 0.6; // 0.7 – 1.3
+    }
+
+    const runners = [
+      { x: 0, phase: 'WALK', pf: 0, walkStart: -(30 + Math.random() * 40), speedFactor: randomSpeedFactor() },
+      { x: 0, phase: 'WALK', pf: 0, walkStart: -(50 + Math.random() * 40), speedFactor: randomSpeedFactor() },
+      { x: 0, phase: 'WALK', pf: 0, walkStart: -(40 + Math.random() * 40), speedFactor: randomSpeedFactor() },
+    ];
+    // Derived maxSpeed from base × factor
+    runners.forEach(r => { r.maxSpeed = BASE_MAX_SPEED * r.speedFactor; r.x = r.walkStart; });
+
+    let startTriggered = false;
+    let setHoldFrames = 0;
+    const SET_HOLD_MIN = 8; // hold set position before "gun"
+
+    function getPhaseParams(runner) {
+      const p = runner.phase;
+      const pf = runner.pf;
+      const ph = PHASES[p];
+      let tl, angles, speed, mirror;
+
+      switch (p) {
+        case 'WALK':
+          tl = WALK_TL;
+          angles = ph.frames[pf % ph.frames.length];
+          speed = 5; // walking RIGHT toward start line
+          mirror = false;
+          break;
+
+        case 'CROUCH':
+          const cd = crouchData[Math.min(pf, crouchData.length - 1)];
+          tl = cd.tl;
+          angles = cd.a;
+          speed = 0;
+          mirror = false;
+          break;
+
+        case 'SET':
+          tl = SET_TL;
+          angles = setAngles;
+          speed = 0;
+          mirror = false;
+          break;
+
+        case 'DRIVE': {
+          const t = pf / Math.max(1, ph.duration - 1);
+          tl = lerp(DRIVE_TL_START, DRIVE_TL_END, t);
+          angles = ph.frames[pf % ph.frames.length];
+          speed = lerp(2, 5, t) * runner.speedFactor;
+          mirror = false;
+          break;
+        }
+        case 'ACCEL': {
+          const t = pf / Math.max(1, ph.duration - 1);
+          tl = lerp(ACCEL_TL_START, ACCEL_TL_END, t);
+          angles = ph.frames[pf % ph.frames.length];
+          speed = lerp(5 * runner.speedFactor, runner.maxSpeed, t);
+          mirror = false;
+          break;
+        }
+        case 'MAX':
+          tl = MAX_VEL_TL;
+          angles = ph.frames[pf % ph.frames.length];
+          speed = runner.maxSpeed;
+          mirror = false;
+          break;
+      }
+      return { tl, angles, speed, mirror };
+    }
+
+    function advancePhase(runner) {
+      const p = runner.phase;
+      const ph = PHASES[p];
+      runner.pf++;
+
+      switch (p) {
+        case 'WALK':
+          if (runner.x >= START_X) {
+            runner.x = START_X;
+            runner.phase = 'CROUCH';
+            runner.pf = 0;
+          }
+          break;
+
+        case 'CROUCH':
+          if (runner.pf >= ph.duration) {
+            runner.phase = 'SET';
+            runner.pf = 0;
+          }
+          break;
+
+        case 'SET':
+          // Sync: wait for all runners + hold period
+          if (startTriggered) {
+            runner.phase = 'DRIVE';
+            runner.pf = 0;
+          }
+          break;
+
+        case 'DRIVE':
+          if (runner.pf >= ph.duration) {
+            runner.phase = 'ACCEL';
+            runner.pf = 0;
+          }
+          break;
+
+        case 'ACCEL':
+          if (runner.pf >= ph.duration) {
+            runner.phase = 'MAX';
+            runner.pf = 0;
+          }
+          break;
+
+        case 'MAX':
+          if (runner.x > canvas.width + 60) {
+            // Reset: back to walk with new random speed for next race
+            runner.phase = 'WALK';
+            runner.pf = 0;
+            runner.walkStart = -(30 + Math.random() * 40);
+            runner.x = runner.walkStart;
+            runner.speedFactor = randomSpeedFactor();
+            runner.maxSpeed = BASE_MAX_SPEED * runner.speedFactor;
+            // Reset sync so next race waits for all runners
+            startTriggered = false;
+            setHoldFrames = 0;
+          }
+          break;
+      }
+    }
+
+    // ---- Drawing ----
+    function drawStickFigure(x, y, pose, mirror) {
+      ctx.strokeStyle = COLOR;
+      ctx.fillStyle = COLOR;
+      ctx.lineWidth = 3.2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const mx = mirror ? -1 : 1;
+      function p(j) { return [x + j[0] * S * mx, y + j[1] * S]; }
+
+      const hd = p(pose.head), nk = p(pose.neck), hp = p([0,0]);
+      const kA = p(pose.knA), fA = p(pose.fA);
+      const kB = p(pose.knB), fB = p(pose.fB);
+      const eA = p(pose.elA), hA = p(pose.haA);
+      const eB = p(pose.elB), hB = p(pose.haB);
+
+      ctx.beginPath(); ctx.arc(hd[0], hd[1], HEAD_R * S, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(nk[0], nk[1]); ctx.lineTo(hp[0], hp[1]); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(hp[0], hp[1]); ctx.lineTo(kA[0], kA[1]); ctx.lineTo(fA[0], fA[1]); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(hp[0], hp[1]); ctx.lineTo(kB[0], kB[1]); ctx.lineTo(fB[0], fB[1]); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(nk[0], nk[1]); ctx.lineTo(eA[0], eA[1]); ctx.lineTo(hA[0], hA[1]); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(nk[0], nk[1]); ctx.lineTo(eB[0], eB[1]); ctx.lineTo(hB[0], hB[1]); ctx.stroke();
+    }
+
+    // ---- Main Loop ----
+    let lastTime = 0;
+
+    function draw(time) {
+      if (time - lastTime > 1000 / FPS) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Check sync: all in SET?
+        const allInSet = runners.every(r => r.phase === 'SET');
+        if (allInSet && !startTriggered) {
+          setHoldFrames++;
+          if (setHoldFrames >= SET_HOLD_MIN) {
+            startTriggered = true;
+          }
+        }
+
+        runners.forEach((runner, i) => {
+          const laneY = i * LANE_H;
+          const trackY = laneY + LANE_H - 2;
+
+          // Track line
+          ctx.fillStyle = TRACK_COLOR;
+          ctx.fillRect(0, trackY, canvas.width, 1);
+
+          // Get phase parameters
+          const { tl, angles, speed, mirror } = getPhaseParams(runner);
+
+          // Compute pose
+          const pose = computePose(angles, tl);
+
+          // Hip height: fixed per phase for cyclic motion (prevents bobbing),
+          // per-frame for CROUCH/SET (where body height genuinely changes)
+          let groundY;
+          if (runner.phase === 'CROUCH' || runner.phase === 'SET') {
+            groundY = Math.max(pose.fA[1], pose.fB[1], pose.knA[1], pose.knB[1]);
+          } else {
+            groundY = FIXED_GROUND_Y[runner.phase];
+          }
+          const hipY = trackY - groundY * S;
+
+          // Draw
+          drawStickFigure(runner.x, hipY, pose, mirror);
+
+          // Move
+          runner.x += speed;
+
+          // Advance phase
+          advancePhase(runner);
+        });
+
+        // Reset sync when all runners are back to WALK
+        if (startTriggered && runners.every(r => r.phase === 'WALK')) {
+          startTriggered = false;
+          setHoldFrames = 0;
+        }
+
+        lastTime = time;
+      }
+      requestAnimationFrame(draw);
+    }
+
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>
