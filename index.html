@@ -11,8 +11,8 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: #0a0a0a;
-      color: #e0e0e0;
+      background: #ffffff;
+      color: #1a1a1a;
       font-family: "SF Mono", "Fira Code", "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
       font-size: clamp(13px, 1.6vw, 16px);
       line-height: 1.8;
@@ -51,13 +51,13 @@
 
     .title {
       font-size: clamp(18px, 3vw, 28px);
-      color: #ff6b35;
+      color: #1a1a1a;
       letter-spacing: 0.15em;
       margin-bottom: 4px;
     }
 
     .tagline {
-      color: #666;
+      color: #999;
       margin-bottom: 48px;
     }
 
@@ -66,11 +66,11 @@
       grid-template-columns: auto 1fr;
       gap: 4px 24px;
       margin-bottom: 48px;
-      color: #666;
+      color: #999;
     }
 
     .info .value {
-      color: #e0e0e0;
+      color: #1a1a1a;
     }
 
     .links {
@@ -79,41 +79,41 @@
 
     .links a {
       display: block;
-      color: #ff6b35;
+      color: #1a1a1a;
       text-decoration: none;
       margin-bottom: 6px;
       transition: color 0.15s;
     }
 
     .links a:hover {
-      color: #e0e0e0;
+      color: #666;
     }
 
-    .links a::before { content: "["; color: #333; }
-    .links a::after  { content: "]"; color: #333; }
+    .links a::before { content: "["; color: #ccc; }
+    .links a::after  { content: "]"; color: #ccc; }
 
     .cta {
       display: inline-block;
       margin-bottom: 48px;
       padding: 10px 24px;
-      border: 1px solid #ff6b35;
-      color: #ff6b35;
+      border: 1px solid #1a1a1a;
+      color: #1a1a1a;
       text-decoration: none;
       transition: background 0.15s, color 0.15s;
     }
 
     .cta:hover {
-      background: #ff6b35;
-      color: #0a0a0a;
+      background: #1a1a1a;
+      color: #ffffff;
     }
 
     .cursor {
-      color: #666;
+      color: #999;
       white-space: pre;
     }
 
     .cursor .caret {
-      color: #ff6b35;
+      color: #1a1a1a;
       animation: blink 1s step-end infinite;
     }
 
@@ -133,13 +133,13 @@
     }
 
     footer a {
-      color: #666;
+      color: #999;
       text-decoration: none;
       transition: color 0.15s;
     }
 
     footer a:hover {
-      color: #e0e0e0;
+      color: #1a1a1a;
     }
 
     footer .legal {
@@ -204,8 +204,8 @@
       const fc = document.createElement('canvas');
       fc.width = 16; fc.height = 16;
       const fctx = fc.getContext('2d');
-      fctx.strokeStyle = '#ff6b35';
-      fctx.fillStyle = '#ff6b35';
+      fctx.strokeStyle = '#1a1a1a';
+      fctx.fillStyle = '#1a1a1a';
       fctx.lineWidth = 1.5;
       fctx.lineCap = 'round';
       // Head
@@ -258,10 +258,24 @@
     const canvas = document.getElementById('runner');
     const ctx = canvas.getContext('2d');
     const FPS = 5.5;
-    const COLOR = '#ff6b35';
-    const TRACK_COLOR = '#ff6b3540';
-    const LANE_H = Math.floor(canvas.height / 3);
-    const S = 3.0;
+    const COLOR = '#1a1a1a';
+    const TRACK_COLOR = '#1a1a1a20';
+    let isLandscape = window.matchMedia('(orientation: landscape)').matches;
+    let LANE_H, S, laneCount;
+
+    function updateCanvasLayout() {
+      isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      laneCount = isLandscape ? 1 : 3;
+      canvas.width = 1920;
+      canvas.height = isLandscape ? 140 : 400;
+      LANE_H = Math.floor(canvas.height / laneCount);
+      S = isLandscape ? 3.0 : 3.0;
+    }
+    updateCanvasLayout();
+
+    window.matchMedia('(orientation: landscape)').addEventListener('change', () => {
+      updateCanvasLayout();
+    });
 
     // Anatomical proportions (units × S = pixels)
     const TORSO = 5, HEAD_R = 1.2, HEAD_OFF = 2.5;
@@ -588,8 +602,9 @@
       if (time - lastTime > 1000 / FPS) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Check sync: all in SET?
-        const allInSet = runners.every(r => r.phase === 'SET');
+        // Check sync: all active runners in SET?
+        const activeRunners = isLandscape ? [runners[0]] : runners;
+        const allInSet = activeRunners.every(r => r.phase === 'SET');
         if (allInSet && !startTriggered) {
           setHoldFrames++;
           if (setHoldFrames >= SET_HOLD_MIN) {
@@ -597,7 +612,7 @@
           }
         }
 
-        runners.forEach((runner, i) => {
+        activeRunners.forEach((runner, i) => {
           const laneY = i * LANE_H;
           const trackY = laneY + LANE_H - 2;
 
@@ -631,8 +646,8 @@
           advancePhase(runner);
         });
 
-        // Reset sync when all runners are back to WALK
-        if (startTriggered && runners.every(r => r.phase === 'WALK')) {
+        // Reset sync when all active runners are back to WALK
+        if (startTriggered && activeRunners.every(r => r.phase === 'WALK')) {
           startTriggered = false;
           setHoldFrames = 0;
         }
