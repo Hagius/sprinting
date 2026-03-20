@@ -40,9 +40,14 @@
       transform: translateY(0);
     }
 
+    .runner-wrap {
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
     canvas {
       display: block;
-      margin-bottom: 64px;
       width: 100%;
       height: auto;
     }
@@ -122,7 +127,7 @@
     footer {
       max-width: 720px;
       width: 100%;
-      margin: 80px auto 0;
+      margin: 24px auto 0;
       padding-top: 24px;
       border-top: none;
       display: flex;
@@ -149,8 +154,6 @@
 </head>
 <body>
   <main>
-    <canvas id="runner" width="720" height="200"></canvas>
-
     <div class="title">SPRINT_BERLIN</div>
     <div class="tagline">// weekly sprint sessions in berlin</div>
 
@@ -168,6 +171,10 @@
 
     <div class="cursor"><span class="caret">_</span></div>
   </main>
+
+  <div class="runner-wrap">
+    <canvas id="runner" width="720" height="200"></canvas>
+  </div>
 
   <footer>
     <a href="https://instagram.com/sprint_berlin" target="_blank" rel="noopener">@instagram</a>
